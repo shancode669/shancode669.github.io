@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SHANTHAN — Cybersecurity Portfolio</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #060606; }
+    #root { min-height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+
+
+// ─── SUPABASE CONFIG ───────────────────────────────────────────
+const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR_ANON_KEY_HERE";
+
+async function sendMessageToSupabase(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/messages`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed");
+  return true;
+}
+
+// ─── DATA ──────────────────────────────────────────────────────
+const PROJECTS = [
+  {
+    id: "01", title: "CipherScan", subtitle: "Network Vulnerability Scanner",
+    desc: "Automated network recon tool scanning open ports, detecting services, fingerprinting OS versions, and flagging CVEs in real time.",
+    tags: ["Python", "Scapy", "Nmap API", "CVE DB"], status: "ACTIVE", threat: "HIGH IMPACT",
+  },
+  {
+    id: "02", title: "PhishGuard", subtitle: "Phishing URL Classifier",
+    desc: "ML model classifying phishing URLs with 97% accuracy using domain structure, WHOIS data, and lexical pattern analysis.",
+    tags: ["Python", "Scikit-learn", "Flask", "JS"], status: "DEPLOYED", threat: "CRITICAL",
+  },
+];
+
+const STATS = [
+  { value: "8.76", label: "CGPA" },
+  { value: "2+",   label: "Projects" },
+  { value: "CSE",  label: "Branch" },
+  { value: "∞",    label: "Curiosity" },
+];
+
+// Radar dimensions
+const RADAR_AXES = [
+  { label: "Offensive",   value: 70 },
+  { label: "Defensive",   value: 75 },
+  { label: "Networking",  value: 68 },
+  { label: "Programming", value: 85 },
+  { label: "Forensics",   value: 62 },
+  { label: "Web Sec",     value: 78 },
+];
+
+// Skills for bars (kept for reference, now replaced by radar)
+const SKILLS = [
+  { name: "Python",           level: 88, category: "Language" },
+  { name: "C / C++",          level: 80, category: "Language" },
+  { name: "Java",             level: 72, category: "Language" },
+  { name: "JavaScript",       level: 78, category: "Language" },
+  { name: "HTML & CSS",       level: 90, category: "Web" },
+  { name: "Network Security", level: 75, category: "Cyber" },
+  { name: "Ethical Hacking",  level: 70, category: "Cyber" },
+  { name: "Cryptography",     level: 68, category: "Cyber" },
+];
+
+const LEARNING_ITEMS = [
+  "⬡ Malware Analysis",
+  "⬡ Reverse Engineering",
+  "⬡ Binary Exploitation",
+  "⬡ Cloud Security (AWS)",
+  "⬡ OSCP Preparation",
+  "⬡ Rust Programming",
+  "⬡ Kernel Internals",
+  "⬡ Zero-Day Research",
+  "⬡ CTF Competitions",
+  "⬡ TryHackMe Labs",
+  "⬡ HackTheBox Pro",
+  "⬡ Cryptographic Protocols",
+];
+
+// Terminal command responses
+const TERMINAL_COMMANDS = {
+  whoami: `> SHANTHAN
+> Role      : Cybersecurity Engineer · Ethical Hacker
+> Status    : Student @ Sairam Engineering College
+> CGPA      : 8.76
+> Clearance : AUTHORIZED`,
+
+  help: `> Available commands:
+>   whoami          — Identity info
+>   ls projects     — List all projects
+>   cat skills.txt  — View skill matrix
+>   cat contact.txt — Get contact info
+>   status          — System status
+>   clear           — Clear terminal`,
+
+  "ls projects": `> /projects
+> ├── CipherScan/      [ACTIVE]     Network Vulnerability Scanner
+> └── PhishGuard/      [DEPLOYED]   Phishing URL Classifier`,
+
+  "cat skills.txt": `> SKILL MATRIX :: SHANTHAN
+> ─────────────────────────────
+> Programming  ████████░░  80%   Python, C, C++, Java, JS
+> Web Dev      █████████░  90%   HTML, CSS, React
+> Networking   ███████░░░  75%   TCP/IP, Nmap, Wireshark
+> Offensive    ███████░░░  70%   Pen Testing, Kali Linux
+> Defensive    ████████░░  75%   IDS, Firewalls, SIEM
+> Cryptography ██████░░░░  68%   AES, RSA, Hash Functions`,
+
+  "cat contact.txt": `> CONTACT :: SHANTHAN
+> ─────────────────────────────
+> Email    : shanthan@email.com
+> GitHub   : github.com/shanthan
+> LinkedIn : linkedin.com/in/shanthan
+> TryHackMe: tryhackme.com/p/shanthan`,
+
+  status: `> SYSTEM STATUS
+> ─────────────────────────────
+> [✓] Portfolio    : ONLINE
+> [✓] Supabase DB  : CONNECTED
+> [✓] Threat Level : MONITORED
+> [~] Experience   : LOADING...
+> [✓] Curiosity    : INFINITE`,
+
+  clear: "__CLEAR__",
+};
+
+// ─── THEME COLORS ──────────────────────────────────────────────
+const THEMES = {
+  dark: {
+    bg:          "#060606",
+    bg2:         "#0c0c0c",
+    bg3:         "#141414",
+    border:      "#2e2a24",
+    borderMid:   "#6b5520",
+    gold:        "#C9A84C",
+    goldLight:   "#F0D080",
+    goldPale:    "#F7E9B8",
+    text:        "#EDE5D0",
+    textDim:     "#7a7060",
+    textMuted:   "#3a3530",
+    name:        "STEALTH MODE",
+  },
+  light: {
+    bg:          "#F5F0E8",
+    bg2:         "#EDE5D4",
+    bg3:         "#E5DCC8",
+    border:      "#C8B990",
+    borderMid:   "#9A7A30",
+    gold:        "#8B6010",
+    goldLight:   "#6B4A08",
+    goldPale:    "#4A3205",
+    text:        "#1a1208",
+    textDim:     "#5a4520",
+    textMuted:   "#8a7550",
+    name:        "DAYLIGHT MODE",
+  },
+};
+
+// ─── HOOKS ─────────────────────────────────────────────────────
+function useInView(threshold = 0.15) {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setVisible(true); },
+      { threshold }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  return [ref, visible];
+}
+
+// ─── SECTION REVEAL WRAPPER ──────────────────────────────
+function SectionReveal({ children, direction = "up", delay = 0, style = {}, id }) {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  const [scanning, setScanning] = useState(false);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !visible) {
+          setVisible(true);
+          setScanning(true);
+          setTimeout(() => setScanning(false), 900);
+        }
+      },
+      { threshold: 0.08 }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [visible]);
+
+  const getTransform = () => {
+    if (visible) return "translate(0,0)";
+    if (direction === "left")  return "translateX(-40px)";
+    if (direction === "right") return "translateX(40px)";
+    return "translateY(48px)";
+  };
+
+  return (
+    <div id={id} ref={ref} style={{
+      opacity: visible ? 1 : 0,
+      transform: getTransform(),
+      transition: "opacity 0.5s cubic-bezier(0.25,0.46,0.45,0.94) " + delay + "s, transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94) " + delay + "s",
+      position: "relative",
+      ...style,
+    }}>
+      {scanning && (
+        <div style={{
+          position: "absolute", top: 0, left: "-100%",
+          width: "100%", height: "1px",
+          background: "linear-gradient(90deg, transparent, #C9A84C, #F7E9B8, #C9A84C, transparent)",
+          animation: "sectionSweep 0.7s cubic-bezier(0.25,0.46,0.45,0.94) forwards",
+          pointerEvents: "none", zIndex: 10,
+          boxShadow: "0 0 12px rgba(201,168,76,0.8)",
+        }} />
+      )}
+      {children}
+    </div>
+  );
+}
+
+// ─── HEXAGONAL RADAR CHART ─────────────────────────────────────
+function HexRadarChart({ theme, animate }) {
+  const cx = 200, cy = 200, maxR = 150;
+  const n = RADAR_AXES.length;
+
+  const angleOf = (i) => (Math.PI * 2 * i) / n - Math.PI / 2;
+
+  const ringPoints = (r) =>
+    RADAR_AXES.map((_, i) => {
+      const a = angleOf(i);
+      return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+    });
+
+  const dataPoints = RADAR_AXES.map((ax, i) => {
+    const r = animate ? (ax.value / 100) * maxR : 0;
+    const a = angleOf(i);
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  });
+
+  const toPath = (pts) => pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0]},${p[1]}`).join(" ") + " Z";
+
+  const rings = [0.25, 0.5, 0.75, 1.0];
+
+  return (
+    <div style={{ position: "relative", width: "400px", maxWidth: "100%" }}>
+      <svg viewBox="0 0 400 400" style={{ width: "100%", overflow: "visible" }}>
+        {/* Background rings */}
+        {rings.map((r, ri) => (
+          <polygon
+            key={ri}
+            points={ringPoints(r * maxR).map(p => p.join(",")).join(" ")}
+            fill="none"
+            stroke={theme.border}
+            strokeWidth={ri === rings.length - 1 ? "1" : "0.5"}
+            opacity={ri === rings.length - 1 ? 0.8 : 0.4}
+          />
+        ))}
+
+        {/* Axis lines */}
+        {RADAR_AXES.map((_, i) => {
+          const [x, y] = ringPoints(maxR)[i];
+          return (
+            <line key={i} x1={cx} y1={cy} x2={x} y2={y}
+              stroke={theme.border} strokeWidth="0.5" opacity="0.5" />
+          );
+        })}
+
+        {/* Data area */}
+        <path
+          d={toPath(dataPoints)}
+          fill={`${theme.gold}18`}
+          stroke={theme.gold}
+          strokeWidth="1.5"
+          style={{ transition: animate ? "all 1.4s cubic-bezier(0.25,0.46,0.45,0.94)" : "none" }}
+        />
+
+        {/* Glow data area */}
+        <path
+          d={toPath(dataPoints)}
+          fill="none"
+          stroke={theme.goldLight}
+          strokeWidth="0.5"
+          opacity="0.5"
+          style={{ filter: `drop-shadow(0 0 6px ${theme.gold})` }}
+        />
+
+        {/* Data points */}
+        {dataPoints.map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r="4"
+            fill={theme.goldLight}
+            style={{
+              filter: `drop-shadow(0 0 8px ${theme.gold})`,
+              transition: animate ? `all 1.4s cubic-bezier(0.25,0.46,0.45,0.94) ${i * 0.08}s` : "none",
+            }}
+          />
+        ))}
+
+        {/* Axis labels */}
+        {RADAR_AXES.map((ax, i) => {
+          const a = angleOf(i);
+          const labelR = maxR + 28;
+          const lx = cx + labelR * Math.cos(a);
+          const ly = cy + labelR * Math.sin(a);
+          const anchor = Math.abs(Math.cos(a)) < 0.1 ? "middle" : Math.cos(a) > 0 ? "start" : "end";
+          return (
+            <g key={i}>
+              <text x={lx} y={ly + 4}
+                textAnchor={anchor}
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: "11px",
+                  fill: theme.textDim,
+                  letterSpacing: "0.1em",
+                }}
+              >
+                {ax.label}
+              </text>
+              <text x={lx} y={ly + 18}
+                textAnchor={anchor}
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "9px",
+                  fill: theme.gold,
+                }}
+              >
+                {ax.value}%
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Center dot */}
+        <circle cx={cx} cy={cy} r="3" fill={theme.gold}
+          style={{ filter: `drop-shadow(0 0 6px ${theme.gold})` }} />
+      </svg>
+    </div>
+  );
+}
+
+// ─── LEARNING TICKER ───────────────────────────────────────────
+function LearningTicker({ theme }) {
+  const doubled = [...LEARNING_ITEMS, ...LEARNING_ITEMS];
+  return (
+    <div style={{
+      borderTop: `1px solid ${theme.border}`,
+      borderBottom: `1px solid ${theme.border}`,
+      padding: "14px 0",
+      overflow: "hidden",
+      position: "relative",
+      background: theme.bg2,
+    }}>
+      {/* Fade edges */}
+      <div style={{
+        position: "absolute", left: 0, top: 0, bottom: 0, width: "120px", zIndex: 2,
+        background: `linear-gradient(90deg, ${theme.bg2}, transparent)`,
+        pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute", right: 0, top: 0, bottom: 0, width: "120px", zIndex: 2,
+        background: `linear-gradient(-90deg, ${theme.bg2}, transparent)`,
+        pointerEvents: "none",
+      }} />
+
+      <div style={{ display: "flex", width: "max-content", animation: "tickerScroll 28s linear infinite" }}>
+        {doubled.map((item, i) => (
+          <span key={i} style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "11px",
+            letterSpacing: "0.2em",
+            color: i % 3 === 0 ? theme.gold : theme.textDim,
+            padding: "0 32px",
+            whiteSpace: "nowrap",
+            textTransform: "uppercase",
+          }}>
+            {item}
+          </span>
+        ))}
+      </div>
+
+      {/* Label */}
+      <div style={{
+        position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)",
+        zIndex: 3,
+        fontFamily: "'Cinzel', serif",
+        fontSize: "8px",
+        letterSpacing: "0.3em",
+        color: theme.gold,
+        background: theme.bg2,
+        padding: "2px 8px",
+        border: `1px solid ${theme.border}`,
+        textTransform: "uppercase",
+      }}>
+        NOW LEARNING
+      </div>
+    </div>
+  );
+}
+
+// ─── FAKE TERMINAL ─────────────────────────────────────────────
+function FakeTerminal({ theme }) {
+  const [lines, setLines] = useState([
+    { type: "sys",    text: "SHANTHAN_TERMINAL v2.4.1 — Secure Shell Interface" },
+    { type: "sys",    text: "Type 'help' to see available commands." },
+    { type: "spacer", text: "" },
+  ]);
+  const [input, setInput] = useState("");
+  const [history, setHistory] = useState([]);
+  const [histIdx, setHistIdx] = useState(-1);
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [lines]);
+
+  const runCommand = useCallback((cmd) => {
+    const trimmed = cmd.trim().toLowerCase();
+    if (!trimmed) return;
+
+    setHistory(h => [trimmed, ...h]);
+    setHistIdx(-1);
+
+    const newLines = [{ type: "input", text: `$ ${cmd}` }];
+
+    if (trimmed === "clear") {
+      setLines([
+        { type: "sys", text: "SHANTHAN_TERMINAL v2.4.1 — Secure Shell Interface" },
+        { type: "spacer", text: "" },
+      ]);
+      return;
+    }
+
+    const response = TERMINAL_COMMANDS[trimmed];
+    if (response) {
+      response.split("\n").forEach(line => {
+        newLines.push({ type: "output", text: line });
+      });
+    } else {
+      newLines.push({ type: "error", text: `> Command not found: '${trimmed}'. Type 'help' for commands.` });
+    }
+
+    newLines.push({ type: "spacer", text: "" });
+    setLines(l => [...l, ...newLines]);
+  }, []);
+
+  const onKeyDown = (e) => {
+    if (e.key === "Enter") {
+      runCommand(input);
+      setInput("");
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHistIdx(i => {
+        const next = Math.min(i + 1, history.length - 1);
+        setInput(history[next] || "");
+        return next;
+      });
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHistIdx(i => {
+        const next = Math.max(i - 1, -1);
+        setInput(next === -1 ? "" : history[next]);
+        return next;
+      });
+    }
+  };
+
+  const lineColor = (type) => {
+    if (type === "sys")    return theme.gold;
+    if (type === "input")  return theme.goldLight;
+    if (type === "error")  return "#c94c4c";
+    if (type === "spacer") return "transparent";
+    return theme.textDim;
+  };
+
+  return (
+    <div
+      onClick={() => inputRef.current?.focus()}
+      style={{
+        background: theme.bg2,
+        border: `1px solid ${theme.border}`,
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: "12px",
+        cursor: "text",
+        overflow: "hidden",
+      }}
+    >
+      {/* Terminal chrome */}
+      <div style={{
+        padding: "10px 18px",
+        borderBottom: `1px solid ${theme.border}`,
+        display: "flex", alignItems: "center", gap: "10px",
+        background: theme.bg3,
+      }}>
+        <div style={{ width: 8, height: 8, borderRadius: "50%", background: theme.gold, boxShadow: `0 0 8px ${theme.gold}` }} />
+        <div style={{ width: 8, height: 8, borderRadius: "50%", background: theme.borderMid }} />
+        <div style={{ width: 8, height: 8, borderRadius: "50%", background: theme.border }} />
+        <span style={{ marginLeft: 12, fontSize: 10, letterSpacing: "0.2em", color: theme.textMuted }}>
+          shanthan@portfolio:~$
+        </span>
+        <span style={{
+          marginLeft: "auto", fontSize: 9, letterSpacing: "0.15em",
+          color: theme.gold, border: `1px solid ${theme.border}`, padding: "2px 8px",
+        }}>
+          SECURE
+        </span>
+      </div>
+
+      {/* Output area */}
+      <div style={{
+        height: "320px", overflowY: "auto", padding: "20px 20px 8px",
+        scrollbarWidth: "thin",
+      }}>
+        {lines.map((line, i) => (
+          <div key={i} style={{
+            color: lineColor(line.type),
+            lineHeight: "1.7",
+            letterSpacing: line.type === "input" ? "0.05em" : "0.02em",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-all",
+          }}>
+            {line.text || "\u00A0"}
+          </div>
+        ))}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input row */}
+      <div style={{
+        borderTop: `1px solid ${theme.border}`,
+        padding: "12px 20px",
+        display: "flex", alignItems: "center", gap: "10px",
+      }}>
+        <span style={{ color: theme.gold, userSelect: "none" }}>$</span>
+        <input
+          ref={inputRef}
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={onKeyDown}
+          placeholder="type a command..."
+          style={{
+            flex: 1, background: "transparent", border: "none", outline: "none",
+            fontFamily: "'JetBrains Mono', monospace", fontSize: "12px",
+            color: theme.goldLight, letterSpacing: "0.05em",
+            caretColor: theme.gold,
+          }}
+          spellCheck={false}
+          autoComplete="off"
+        />
+        <span style={{
+          fontSize: 9, letterSpacing: "0.15em",
+          color: theme.textMuted, userSelect: "none",
+        }}>
+          ↑↓ history
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ─── STEALTH TOGGLE ────────────────────────────────────────────
+function StealthToggle({ mode, onToggle, theme }) {
+  return (
+    <button
+      onClick={onToggle}
+      style={{
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: "9px",
+        letterSpacing: "0.2em",
+        color: theme.gold,
+        background: "transparent",
+        border: `1px solid ${theme.border}`,
+        padding: "8px 16px",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        transition: "all 0.3s",
+        textTransform: "uppercase",
+      }}
+      onMouseEnter={e => e.currentTarget.style.borderColor = theme.gold}
+      onMouseLeave={e => e.currentTarget.style.borderColor = theme.border}
+    >
+      <span style={{
+        display: "inline-block",
+        width: "28px", height: "14px",
+        border: `1px solid ${theme.gold}`,
+        borderRadius: "7px",
+        position: "relative",
+        transition: "background 0.3s",
+        background: mode === "dark" ? `${theme.gold}30` : `${theme.gold}80`,
+      }}>
+        <span style={{
+          position: "absolute",
+          top: "50%", left: mode === "dark" ? "3px" : "calc(100% - 13px)",
+          transform: "translateY(-50%)",
+          width: "8px", height: "8px",
+          borderRadius: "50%",
+          background: theme.gold,
+          boxShadow: `0 0 6px ${theme.gold}`,
+          transition: "left 0.3s",
+        }} />
+      </span>
+      {mode === "dark" ? "[ STEALTH ON ]" : "[ STEALTH OFF ]"}
+    </button>
+  );
+}
+
+// ─── GLITCH NAME — SVG-based, works in all renderers ──────────
+function GlitchName({ theme }) {
+  const [hovered, setHovered] = useState(null);
+  const [glitch, setGlitch]   = useState(false);
+  const [tick, setTick]       = useState(0);
+
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setGlitch(true);
+      setTimeout(() => setGlitch(false), 300);
+    }, 4000);
+    return () => clearInterval(iv);
+  }, []);
+
+  // Animate gradient by shifting tick
+  useEffect(() => {
+    let raf;
+    const loop = () => { setTick(t => t + 0.3); raf = requestAnimationFrame(loop); };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const letters = "SHANTHAN".split("");
+
+  // Per-letter gold stop colours — all warm, no green
+  const stops = [
+    { a: "#6B4510", b: "#C9A84C", c: "#F7E9B8" },
+    { a: "#7A5218", b: "#D9B84E", c: "#F0D888" },
+    { a: "#9A7020", b: "#E8C860", c: "#FFF4B0" },
+    { a: "#5E3C0C", b: "#BF9438", c: "#EAD880" },
+    { a: "#8A6018", b: "#D4A840", c: "#F5E890" },
+    { a: "#7B5010", b: "#CC9C3C", c: "#F2E070" },
+    { a: "#6A4A14", b: "#C4A040", c: "#EDE080" },
+    { a: "#804E10", b: "#D0A044", c: "#F3E888" },
+  ];
+
+  // SVG viewBox: 8 chars × ~90px wide each, height 130
+  const W = 740, H = 130;
+  const charW = W / letters.length;
+
+  return (
+    <div style={{ userSelect: "none", cursor: "default", width: "100%", maxWidth: "740px" }}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        style={{ width: "100%", overflow: "visible" }}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          {letters.map((_, i) => {
+            const { a, b, c } = stops[i];
+            // Animate offset using tick so it flows
+            const off1 = ((tick * 0.4 + i * 15) % 100).toFixed(1);
+            const off2 = ((tick * 0.4 + i * 15 + 40) % 100).toFixed(1);
+            const off3 = ((tick * 0.4 + i * 15 + 75) % 100).toFixed(1);
+            const isGlit = glitch && i % 3 === 0;
+            return (
+              <linearGradient key={i} id={`lg${i}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stopColor={isGlit ? "#ffffff" : a} />
+                <stop offset={`${Math.min(parseFloat(off1), 99)}%`} stopColor={isGlit ? "#fffbe0" : b} />
+                <stop offset={`${Math.min(parseFloat(off2), 99)}%`} stopColor={isGlit ? "#ffffff" : c} />
+                <stop offset={`${Math.min(parseFloat(off3), 99)}%`} stopColor={b} />
+                <stop offset="100%" stopColor={a} />
+              </linearGradient>
+            );
+          })}
+          {/* Glow filter */}
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="glowStrong" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="6" result="blur" />
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        {letters.map((l, i) => {
+          const x = charW * i + charW * 0.5;
+          const isHov = hovered === i;
+          const isGlit = glitch && i % 3 === 0;
+          return (
+            <text
+              key={i}
+              x={x}
+              y={100}
+              textAnchor="middle"
+              fill={`url(#lg${i})`}
+              filter={isHov ? "url(#glowStrong)" : isGlit ? "url(#glowStrong)" : "url(#glow)"}
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: "clamp(52px, 9.5vw, 118px)",
+                fontWeight: 900,
+                cursor: "default",
+                transition: "transform 0.22s",
+                transform: isHov ? `translate(${x}px, 100px) scale(1.08) translate(-${x}px, -100px)` : "none",
+              }}
+              onMouseEnter={() => setHovered(i)}
+              onMouseLeave={() => setHovered(null)}
+            >
+              {l}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+// ─── HEX BG ────────────────────────────────────────────────────
+function HexBg({ theme }) {
+  return (
+    <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.04, pointerEvents: "none" }}>
+      <defs>
+        <pattern id="hex" width="56" height="48" patternUnits="userSpaceOnUse">
+          <polygon points="28,2 52,14 52,34 28,46 4,34 4,14" fill="none" stroke={theme.gold} strokeWidth="0.8" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#hex)" />
+    </svg>
+  );
+}
+
+// ─── SCAN LINE ─────────────────────────────────────────────────
+function ScanLine({ theme }) {
+  return (
+    <div style={{
+      position: "absolute", top: 0, left: 0, right: 0, height: "2px",
+      background: `linear-gradient(90deg, transparent, ${theme.gold}99, transparent)`,
+      animation: "scanDown 6s linear infinite",
+      pointerEvents: "none",
+    }} />
+  );
+}
+
+// ─── SECTION LABEL ─────────────────────────────────────────────
+function SectionLabel({ children, theme }) {
+  return (
+    <div style={{
+      fontFamily: "'Cinzel', serif", fontSize: "9px",
+      letterSpacing: "0.5em", textTransform: "uppercase",
+      color: theme.gold,
+      marginBottom: "16px",
+      display: "flex", alignItems: "center", gap: "16px",
+    }}>
+      <div style={{ width: "24px", height: "1px", background: `linear-gradient(90deg,${theme.gold},transparent)` }} />
+      {children}
+    </div>
+  );
+}
+
+// ─── SECTION TITLE ─────────────────────────────────────────────
+function SectionTitle({ children, theme, visible, delay = 0.1 }) {
+  return (
+    <h2 className="grad-text-block" style={{
+      fontFamily: "'Playfair Display', serif",
+      fontSize: "clamp(38px, 5vw, 68px)",
+      fontWeight: 700, lineHeight: 1.08,
+      marginBottom: "56px",
+      opacity: visible ? 1 : 0,
+      transform: visible ? "translateY(0)" : "translateY(20px)",
+      transition: `opacity 0.9s ${delay}s, transform 0.9s ${delay}s`,
+    }}>
+      {children}
+    </h2>
+  );
+}
+
+// ─── GLITCH POPUP ──────────────────────────────────────────────
+function GlitchPopup({ theme, onClose }) {
+  const [phase, setPhase]       = useState(0); // 0=boot 1=lines 2=done
+  const [lines, setLines]       = useState([]);
+  const [glitchOn, setGlitchOn] = useState(false);
+  const [scanY, setScanY]       = useState(0);
+
+  const bootLines = [
+    { t: 0,    text: ">> INITIATING SECURE HANDSHAKE...",          color: "#C9A84C" },
+    { t: 320,  text: ">> ENCRYPTING PAYLOAD [AES-256-GCM]",        color: "#C9A84C" },
+    { t: 640,  text: ">> VERIFYING SENDER SIGNATURE...",           color: "#C9A84C" },
+    { t: 960,  text: ">> SIGNATURE VALID ✓",                       color: "#7FD98A" },
+    { t: 1200, text: ">> ROUTING THROUGH SECURE TUNNEL...",        color: "#C9A84C" },
+    { t: 1500, text: ">> BYPASSING HONEYPOT FILTERS...",           color: "#C9A84C" },
+    { t: 1780, text: ">> PACKET DELIVERY: 100%",                   color: "#7FD98A" },
+    { t: 2050, text: ">> TARGET NODE ACKNOWLEDGED RECEIPT",        color: "#7FD98A" },
+    { t: 2350, text: "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",      color: "#6b5520" },
+    { t: 2600, text: "   TRANSMISSION SUCCESSFUL",                  color: "#F7E9B8", big: true },
+    { t: 2900, text: "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",      color: "#6b5520" },
+    { t: 3150, text: ">> CHANNEL WILL AUTO-DESTRUCT IN 10s",       color: "#c94c4c" },
+    { t: 3400, text: ">> MESSAGE ARCHIVED IN SECURE VAULT",        color: "#C9A84C" },
+    { t: 3650, text: ">> RESPONSE ETA: < 24 HOURS",                color: "#C9A84C" },
+    { t: 3900, text: ">> DISCONNECTING... STAY DARK.",             color: "#7a7060" },
+  ];
+
+  // Sequential line reveal
+  useEffect(() => {
+    const timers = bootLines.map(({ t, text, color, big }) =>
+      setTimeout(() => setLines(l => [...l, { text, color, big }]), t)
+    );
+    // Glitch bursts
+    const g1 = setTimeout(() => { setGlitchOn(true);  setTimeout(() => setGlitchOn(false), 120); }, 500);
+    const g2 = setTimeout(() => { setGlitchOn(true);  setTimeout(() => setGlitchOn(false), 80);  }, 1900);
+    const g3 = setTimeout(() => { setGlitchOn(true);  setTimeout(() => setGlitchOn(false), 150); }, 2620);
+    const g4 = setTimeout(() => { setGlitchOn(true);  setTimeout(() => setGlitchOn(false), 200); }, 3900);
+    // Auto close after 7s
+    const close = setTimeout(onClose, 7200);
+    return () => { [...timers, g1, g2, g3, g4, close].forEach(clearTimeout); };
+  }, []);
+
+  // Scan line animation
+  useEffect(() => {
+    let raf;
+    const loop = () => { setScanY(y => (y + 1.2) % 100); raf = requestAnimationFrame(loop); };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 9990,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(6,6,6,0.92)",
+      backdropFilter: "blur(4px)",
+      animation: "fadeIn 0.2s ease",
+    }}>
+      {/* Glitch overlay stripes */}
+      {glitchOn && (
+        <div style={{
+          position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none",
+          background: `repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(201,168,76,0.06) 2px,
+            rgba(201,168,76,0.06) 4px
+          )`,
+          animation: "glitchFlash 0.1s steps(1) infinite",
+        }} />
+      )}
+
+      {/* Scan line */}
+      <div style={{
+        position: "absolute", left: 0, right: 0,
+        top: `${scanY}%`, height: "2px",
+        background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.4), transparent)",
+        pointerEvents: "none", zIndex: 2,
+      }} />
+
+      {/* Terminal window */}
+      <div style={{
+        width: "min(600px, 90vw)",
+        background: "#070707",
+        border: `1px solid ${glitchOn ? "#F7E9B8" : "#C9A84C"}`,
+        boxShadow: `0 0 40px rgba(201,168,76,0.25), 0 0 80px rgba(201,168,76,0.1), inset 0 0 30px rgba(201,168,76,0.03)`,
+        position: "relative", zIndex: 3,
+        transform: glitchOn ? `translate(${Math.random()*6-3}px, ${Math.random()*4-2}px) skewX(${Math.random()*1-0.5}deg)` : "none",
+        transition: glitchOn ? "none" : "transform 0.05s",
+      }}>
+
+        {/* Chrome bar */}
+        <div style={{
+          padding: "12px 20px",
+          borderBottom: `1px solid #2e2a24`,
+          display: "flex", alignItems: "center", gap: "10px",
+          background: "#0c0c0c",
+        }}>
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#C9A84C", boxShadow: "0 0 8px #C9A84C", animation: "pulse 1s infinite" }} />
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#6b5520" }} />
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#2e2a24" }} />
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "#6b5520", marginLeft: 12, letterSpacing: "0.2em" }}>
+            SECURE_CHANNEL :: TRANSMISSION_LOG
+          </span>
+          <button onClick={onClose} style={{
+            marginLeft: "auto", background: "transparent", border: "none",
+            color: "#3a3530", cursor: "pointer", fontSize: "14px",
+            fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.1em",
+            transition: "color 0.2s", padding: "0 4px",
+          }}
+          onMouseEnter={e => e.target.style.color = "#C9A84C"}
+          onMouseLeave={e => e.target.style.color = "#3a3530"}
+          >✕</button>
+        </div>
+
+        {/* Log output */}
+        <div style={{
+          padding: "28px 28px 24px",
+          minHeight: "320px",
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: "12px",
+          lineHeight: "2",
+          letterSpacing: "0.05em",
+          position: "relative",
+          overflow: "hidden",
+        }}>
+          {/* CRT scanlines texture */}
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px)",
+          }} />
+
+          {lines.map((line, i) => (
+            <div key={i} style={{
+              color: line.color,
+              fontSize: line.big ? "16px" : "12px",
+              fontWeight: line.big ? 700 : 400,
+              letterSpacing: line.big ? "0.3em" : "0.05em",
+              textAlign: line.big ? "center" : "left",
+              textShadow: line.big ? `0 0 20px ${line.color}, 0 0 40px ${line.color}88` : line.color === "#7FD98A" ? "0 0 8px #7FD98A55" : "none",
+              marginTop: line.big ? "8px" : 0,
+              marginBottom: line.big ? "8px" : 0,
+              animation: `fadeUp 0.3s ease both`,
+              position: "relative", zIndex: 1,
+            }}>
+              {line.text}
+            </div>
+          ))}
+
+          {/* Blinking cursor at end */}
+          {lines.length > 0 && lines.length < bootLines.length && (
+            <span style={{ color: "#C9A84C", animation: "blink 0.7s step-end infinite" }}>▋</span>
+          )}
+        </div>
+
+        {/* Bottom bar */}
+        <div style={{
+          borderTop: "1px solid #2e2a24", padding: "12px 28px",
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          background: "#0a0a0a",
+        }}>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "9px", letterSpacing: "0.2em", color: "#3a3530" }}>
+            ENC: AES-256-GCM · AUTH: ED25519
+          </span>
+          <button onClick={onClose} style={{
+            fontFamily: "'Cinzel', serif", fontSize: "9px",
+            letterSpacing: "0.25em", textTransform: "uppercase",
+            color: "#C9A84C", background: "transparent",
+            border: "1px solid #6b5520", padding: "7px 20px",
+            cursor: "pointer", transition: "all 0.3s",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = "#C9A84C"; e.currentTarget.style.color = "#060606"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#C9A84C"; }}
+          >
+            CLOSE CHANNEL
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── CONTACT FORM ──────────────────────────────────────────────
+function ContactForm({ theme }) {
+  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+  const [status, setStatus] = useState("idle");
+  const [showPopup, setShowPopup] = useState(false);
+  const [ref, visible] = useInView();
+
+  const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setStatus("sending");
+    try {
+      await sendMessageToSupabase({ ...form, created_at: new Date().toISOString() });
+      setStatus("success");
+      setShowPopup(true);
+      setForm({ name: "", email: "", subject: "", message: "" });
+    } catch { setStatus("error"); }
+  };
+
+  const inp = {
+    width: "100%", background: theme.bg2,
+    border: `1px solid ${theme.border}`,
+    color: theme.text, padding: "13px 16px",
+    fontFamily: "'EB Garamond', serif", fontSize: "16px",
+    outline: "none", transition: "border-color 0.3s",
+  };
+  const lbl = {
+    fontFamily: "'Cinzel', serif", fontSize: "9px",
+    letterSpacing: "0.3em", color: theme.textDim,
+    textTransform: "uppercase", display: "block", marginBottom: "8px",
+  };
+
+  return (
+    <div ref={ref}>
+      {/* GLITCH POPUP */}
+      {showPopup && <GlitchPopup theme={theme} onClose={() => { setShowPopup(false); setStatus("idle"); }} />}
+
+      <div style={{
+        background: theme.bg3, borderBottom: `1px solid ${theme.border}`,
+        padding: "11px 18px", display: "flex", alignItems: "center", gap: "10px",
+        border: `1px solid ${theme.border}`,
+      }}>
+        <div style={{ width: 8, height: 8, borderRadius: "50%", background: theme.gold, boxShadow: `0 0 8px ${theme.gold}` }} />
+        <div style={{ width: 8, height: 8, borderRadius: "50%", background: theme.borderMid }} />
+        <div style={{ width: 8, height: 8, borderRadius: "50%", background: theme.border }} />
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: theme.textMuted, marginLeft: 12, letterSpacing: "0.2em" }}>
+          SECURE_CHANNEL :: TRANSMISSION_CONSOLE
+        </span>
+      </div>
+
+      <form onSubmit={submit} style={{
+        background: theme.bg, border: `1px solid ${theme.border}`, borderTop: "none",
+        padding: "40px",
+        opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
+        transition: "opacity 0.8s 0.3s, transform 0.8s 0.3s",
+      }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
+          <div>
+            <label style={lbl}>Sender ID</label>
+            <input name="name" value={form.name} onChange={handle} required placeholder="Your name"
+              style={inp}
+              onFocus={e => e.target.style.borderColor = theme.gold}
+              onBlur={e => e.target.style.borderColor = theme.border} />
+          </div>
+          <div>
+            <label style={lbl}>Channel Address</label>
+            <input name="email" type="email" value={form.email} onChange={handle} required placeholder="your@email.com"
+              style={inp}
+              onFocus={e => e.target.style.borderColor = theme.gold}
+              onBlur={e => e.target.style.borderColor = theme.border} />
+          </div>
+        </div>
+        <div style={{ marginBottom: "20px" }}>
+          <label style={lbl}>Subject</label>
+          <input name="subject" value={form.subject} onChange={handle} placeholder="What's this about?"
+            style={inp}
+            onFocus={e => e.target.style.borderColor = theme.gold}
+            onBlur={e => e.target.style.borderColor = theme.border} />
+        </div>
+        <div style={{ marginBottom: "28px" }}>
+          <label style={lbl}>Transmission</label>
+          <textarea name="message" value={form.message} onChange={handle} required rows={5}
+            placeholder="Your message..."
+            style={{ ...inp, resize: "vertical", lineHeight: "1.7" }}
+            onFocus={e => e.target.style.borderColor = theme.gold}
+            onBlur={e => e.target.style.borderColor = theme.border} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
+          <button type="submit" disabled={status === "sending"}
+            style={{
+              padding: "13px 44px", background: "transparent",
+              border: `1px solid ${status === "sending" ? theme.borderMid : theme.gold}`,
+              fontFamily: "'Cinzel', serif", fontSize: "10px",
+              letterSpacing: "0.3em", textTransform: "uppercase",
+              color: status === "sending" ? theme.borderMid : theme.gold,
+              cursor: status === "sending" ? "not-allowed" : "pointer",
+              transition: "all 0.4s",
+              display: "flex", alignItems: "center", gap: "10px",
+            }}
+            onMouseEnter={e => { if (status !== "sending") { e.currentTarget.style.background = theme.gold; e.currentTarget.style.color = theme.bg; }}}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = status === "sending" ? theme.borderMid : theme.gold; }}
+          >
+            {status === "sending" && (
+              <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: theme.borderMid, animation: "pulse 0.8s infinite" }} />
+            )}
+            {status === "sending" ? "ENCRYPTING + ROUTING..." : "TRANSMIT MESSAGE"}
+          </button>
+
+          {status === "error" && (
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "#c94c4c", letterSpacing: "0.15em" }}>
+              ✗ TRANSMISSION FAILED — RETRY
+            </span>
+          )}
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// ─── MAIN APP ──────────────────────────────────────────────────
+function App() {
+  const [themeMode, setThemeMode] = useState("dark");
+  const theme = THEMES[themeMode];
+
+  const [mousePos, setMousePos]   = useState({ x: 0, y: 0 });
+  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+  const [cursorHover, setCursorHover] = useState(false);
+  const [navSolid, setNavSolid]   = useState(false);
+
+  const [aboutRef,  aboutVisible]  = useInView();
+  const [skillsRef, skillsVisible] = useInView(0.2);
+  const [projRef,   projVisible]   = useInView();
+
+  // Cursor
+  useEffect(() => {
+    const move = e => setMousePos({ x: e.clientX, y: e.clientY });
+    window.addEventListener("mousemove", move);
+    return () => window.removeEventListener("mousemove", move);
+  }, []);
+
+  useEffect(() => {
+    let raf;
+    const loop = () => {
+      setCursorPos(p => ({ x: p.x + (mousePos.x - p.x) * 0.12, y: p.y + (mousePos.y - p.y) * 0.12 }));
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [mousePos]);
+
+  useEffect(() => {
+    const onScroll = () => setNavSolid(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const over = () => setCursorHover(true);
+    const out  = () => setCursorHover(false);
+    const els  = document.querySelectorAll("a,button,.hoverable");
+    els.forEach(el => { el.addEventListener("mouseenter", over); el.addEventListener("mouseleave", out); });
+    return () => els.forEach(el => { el.removeEventListener("mouseenter", over); el.removeEventListener("mouseleave", out); });
+  });
+
+  const secStyle = {
+    padding: "120px 64px",
+    borderTop: `1px solid ${theme.border}`,
+    background: theme.bg,
+  };
+
+  return (
+    <div style={{ background: theme.bg, minHeight: "100vh", overflowX: "hidden", cursor: "none", transition: "background 0.5s, color 0.5s", color: theme.text, paddingBottom: "52px" }}>
+
+      {/* ── GLOBAL STYLES ── */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=JetBrains+Mono:wght@300;400&display=swap');
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth}
+        input::placeholder,textarea::placeholder{color:#3a3530}
+        ::-webkit-scrollbar{width:3px}
+        ::-webkit-scrollbar-track{background:#060606}
+        ::-webkit-scrollbar-thumb{background:#6b5520}
+
+        @keyframes royalFlow {
+          0%{background-position:0% 50%}
+          50%{background-position:100% 50%}
+          100%{background-position:0% 50%}
+        }
+        @keyframes shimmerPass {
+          0%{background-position:-200% center}
+          100%{background-position:200% center}
+        }
+        @keyframes scanDown {
+          0%{top:-2px;opacity:0}
+          8%{opacity:1}
+          92%{opacity:1}
+          100%{top:100%;opacity:0}
+        }
+        @keyframes pulse {
+          0%,100%{opacity:1} 50%{opacity:0.25}
+        }
+        @keyframes fadeUp {
+          from{opacity:0;transform:translateY(22px)}
+          to{opacity:1;transform:translateY(0)}
+        }
+        @keyframes blink {
+          0%,100%{opacity:1} 50%{opacity:0}
+        }
+        @keyframes rotateHex {
+          from{transform:rotate(0deg)}
+          to{transform:rotate(360deg)}
+        }
+        @keyframes tickerScroll {
+          0%{transform:translateX(0)}
+          100%{transform:translateX(-50%)}
+        }
+        @keyframes neonPulse {
+          0%,100%{box-shadow:0 0 4px rgba(201,168,76,0.15)}
+          50%{box-shadow:0 0 18px rgba(201,168,76,0.35)}
+        }
+        @keyframes sectionSweep {
+          0%   { left: -100%; opacity: 0; }
+          10%  { opacity: 1; }
+          90%  { opacity: 1; }
+          100% { left: 100%; opacity: 0; }
+        }
+        @keyframes glitchFlash {
+          0%  { opacity: 1; transform: skewX(-1deg) translateX(2px); }
+          25% { opacity: 0.8; transform: skewX(1.5deg) translateX(-3px); }
+          50% { opacity: 1; transform: skewX(-0.5deg) translateX(1px); }
+          75% { opacity: 0.9; transform: skewX(2deg) translateX(-2px); }
+          100%{ opacity: 1; transform: skewX(0deg) translateX(0); }
+        }
+        @media(max-width:768px){
+          section{padding:80px 24px!important}
+          nav{padding:20px 24px!important}
+        }
+        .grad-text {
+          background: linear-gradient(135deg, #8B6010, #C9A84C, #F7E9B8, #C9A84C, #8B6010);
+          background-size: 300% 300%;
+          -webkit-background-clip: text !important;
+          -webkit-text-fill-color: transparent !important;
+          background-clip: text !important;
+          color: transparent !important;
+          animation: royalFlow 8s ease infinite;
+          display: inline !important;
+        }
+        .grad-text-shimmer {
+          background: linear-gradient(90deg, #6b5520, #C9A84C, #F7E9B8, #C9A84C, #6b5520);
+          background-size: 250% auto;
+          -webkit-background-clip: text !important;
+          -webkit-text-fill-color: transparent !important;
+          background-clip: text !important;
+          color: transparent !important;
+          animation: shimmerPass 3.5s linear infinite;
+          display: inline !important;
+        }
+        .grad-text-block {
+          background: linear-gradient(135deg, #8B6010, #C9A84C, #F7E9B8, #C9A84C, #8B6010);
+          background-size: 300% 300%;
+          -webkit-background-clip: text !important;
+          -webkit-text-fill-color: transparent !important;
+          background-clip: text !important;
+          color: transparent !important;
+          animation: royalFlow 8s ease infinite;
+        }
+      `}</style>
+
+      {/* ── CURSOR ── */}
+      <div style={{ position:"fixed", left:mousePos.x, top:mousePos.y, width:7, height:7, background:theme.goldLight, borderRadius:"50%", transform:"translate(-50%,-50%)", pointerEvents:"none", zIndex:9999, boxShadow:`0 0 12px ${theme.gold}` }} />
+      <div style={{ position:"fixed", left:cursorPos.x, top:cursorPos.y, width:cursorHover?62:36, height:cursorHover?62:36, border:`1px solid ${cursorHover ? theme.gold : theme.gold+"55"}`, borderRadius:"50%", transform:"translate(-50%,-50%)", pointerEvents:"none", zIndex:9998, transition:"width 0.3s,height 0.3s,border-color 0.3s" }} />
+
+      {/* ── NAV ── */}
+      <nav style={{
+        position:"fixed", top:0, left:0, right:0, zIndex:100,
+        padding:"26px 64px",
+        display:"flex", justifyContent:"space-between", alignItems:"center",
+        background: navSolid ? `${theme.bg}f8` : `linear-gradient(to bottom, ${theme.bg}f5, transparent)`,
+        borderBottom: navSolid ? `1px solid ${theme.border}` : "none",
+        transition:"all 0.4s",
+      }}>
+        <a href="#hero" className="grad-text-shimmer" style={{
+          fontFamily:"'Cinzel', serif", fontWeight:700, fontSize:"13px",
+          letterSpacing:"0.4em", textDecoration:"none",
+        }}>SHANTHAN</a>
+
+        <div style={{ display:"flex", gap:"40px", alignItems:"center" }}>
+          {["about","skills","projects","contact"].map(s => (
+            <a key={s} href={`#${s}`} className="hoverable" style={{
+              fontFamily:"'Cinzel', serif", fontSize:"9px",
+              letterSpacing:"0.28em", color:theme.textDim,
+              textDecoration:"none", textTransform:"uppercase",
+              transition:"color 0.3s",
+            }}
+            onMouseEnter={e=>e.target.style.color=theme.goldLight}
+            onMouseLeave={e=>e.target.style.color=theme.textDim}
+            >{s}</a>
+          ))}
+          <StealthToggle mode={themeMode} onToggle={() => setThemeMode(m => m === "dark" ? "light" : "dark")} theme={theme} />
+        </div>
+      </nav>
+
+      {/* ── LEARNING TICKER ── */}
+      <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:200, background:theme.bg, borderTop:`1px solid ${theme.border}` }}>
+        <LearningTicker theme={theme} />
+      </div>
+
+      {/* ── HERO ── */}
+      <section id="hero" style={{ minHeight:"100vh", position:"relative", overflow:"hidden", display:"flex", alignItems:"center", padding:"0 64px", background:theme.bg }}>
+        <HexBg theme={theme} />
+        <ScanLine theme={theme} />
+
+        {/* Ambient radial */}
+        <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse 60% 55% at 75% 48%, ${theme.gold}12 0%, transparent 65%), radial-gradient(ellipse 28% 38% at 10% 80%, ${theme.gold}07 0%, transparent 55%)`, pointerEvents:"none" }} />
+
+        {/* Rotating hex ornament */}
+        <div style={{ position:"absolute", right:"7%", top:"50%", transform:"translateY(-50%)", width:"300px", height:"300px", opacity:0.1, pointerEvents:"none" }}>
+          <svg viewBox="0 0 200 200" style={{ animation:"rotateHex 28s linear infinite" }}>
+            <polygon points="100,8 170,50 170,150 100,192 30,150 30,50" fill="none" stroke={theme.gold} strokeWidth="1" />
+            <polygon points="100,28 154,58 154,142 100,172 46,142 46,58" fill="none" stroke={theme.gold} strokeWidth="0.6" />
+            <polygon points="100,52 138,72 138,128 100,148 62,128 62,72" fill="none" stroke={theme.gold} strokeWidth="0.3" />
+          </svg>
+        </div>
+
+        <div style={{ position:"relative", zIndex:2, maxWidth:"860px" }}>
+          {/* Eyebrow */}
+          <div style={{
+            fontFamily:"'JetBrains Mono', monospace", fontSize:"11px",
+            letterSpacing:"0.35em", color:theme.gold,
+            textTransform:"uppercase", marginBottom:"28px",
+            display:"flex", alignItems:"center", gap:"14px",
+            animation:"fadeUp 0.8s 0.2s both",
+          }}>
+            <span style={{ width:"34px", height:"1px", background:`linear-gradient(90deg,${theme.gold},transparent)` }} />
+            <span style={{ color:theme.borderMid }}>[</span>&nbsp;SYS_ONLINE · CLEARANCE: AUTHORIZED&nbsp;<span style={{ color:theme.borderMid }}>]</span>
+            <span style={{ animation:"blink 1s step-end infinite" }}>_</span>
+          </div>
+
+          <div style={{ animation:"fadeUp 0.9s 0.4s both" }}>
+            <GlitchName theme={theme} />
+          </div>
+
+          <div style={{ marginTop:"18px", marginBottom:"10px", animation:"fadeUp 0.9s 0.7s both" }}>
+            <span className="grad-text-shimmer" style={{
+              fontFamily:"'Cinzel', serif",
+              fontSize:"clamp(12px,1.7vw,17px)",
+              letterSpacing:"0.32em", textTransform:"uppercase",
+            }}>
+              Cybersecurity Engineer · Ethical Hacker · Builder
+            </span>
+          </div>
+
+          <p style={{
+            fontFamily:"'EB Garamond', serif", fontStyle:"italic",
+            fontSize:"clamp(15px,1.6vw,20px)", color:theme.textDim,
+            lineHeight:1.8, maxWidth:"460px",
+            marginTop:"16px", marginBottom:"52px",
+            animation:"fadeUp 0.9s 0.9s both",
+          }}>
+            Defending systems. Breaking barriers.<br />Engineering the secure future, one line at a time.
+          </p>
+
+          <div style={{ display:"flex", gap:"24px", alignItems:"center", animation:"fadeUp 0.9s 1.1s both" }}>
+            <a href="#projects" className="hoverable" style={{
+              padding:"13px 40px", background:"transparent",
+              border:`1px solid ${theme.gold}`,
+              fontFamily:"'Cinzel', serif", fontSize:"10px",
+              letterSpacing:"0.3em", textTransform:"uppercase",
+              textDecoration:"none", color:theme.gold, transition:"all 0.4s",
+            }}
+            onMouseEnter={e=>{e.currentTarget.style.background=theme.gold;e.currentTarget.style.color=theme.bg}}
+            onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color=theme.gold}}
+            >View Projects</a>
+
+            <a href="#contact" className="hoverable" style={{
+              fontFamily:"'Cinzel', serif", fontSize:"10px",
+              letterSpacing:"0.22em", color:theme.textDim,
+              textDecoration:"none", textTransform:"uppercase",
+              display:"flex", alignItems:"center", gap:"10px",
+              transition:"color 0.3s",
+            }}
+            onMouseEnter={e=>e.currentTarget.style.color=theme.goldLight}
+            onMouseLeave={e=>e.currentTarget.style.color=theme.textDim}
+            >Open Channel →</a>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div style={{ position:"absolute", bottom:"80px", right:"64px", display:"flex", flexDirection:"column", alignItems:"center", gap:"12px", animation:"fadeUp 1s 1.4s both" }}>
+          <div style={{ width:"1px", height:"52px", background:`linear-gradient(to bottom,${theme.borderMid},transparent)`, animation:"pulse 2.5s ease-in-out infinite" }} />
+          <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize:"8px", letterSpacing:"0.4em", color:theme.textMuted, textTransform:"uppercase", writingMode:"vertical-lr" }}>SCROLL</span>
+        </div>
+      </section>
+
+      {/* ── ABOUT ── */}
+      <SectionReveal id="about" direction="up" delay={0} style={secStyle}>
+      <section style={{ padding:0 }}>
+        <div ref={aboutRef} style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"80px", alignItems:"center" }}>
+          <div>
+            <SectionLabel theme={theme}>Profile</SectionLabel>
+            <SectionTitle visible={aboutVisible} theme={theme}>Who I Am.</SectionTitle>
+            <p style={{ fontFamily:"'EB Garamond', serif", fontSize:"19px", fontWeight:300, lineHeight:1.85, color:theme.textDim, marginBottom:"18px", opacity:aboutVisible?1:0, transform:aboutVisible?"translateY(0)":"translateY(16px)", transition:"opacity 0.8s 0.3s, transform 0.8s 0.3s" }}>
+              I'm{" "}<span className="grad-text" style={{ fontWeight:600, fontFamily:"'EB Garamond', serif", fontSize:"19px" }}>Shanthan</span>{" "}— a CSE student specialising in cybersecurity, passionate about finding vulnerabilities before adversaries do.
+            </p>
+            <p style={{ fontFamily:"'EB Garamond', serif", fontSize:"19px", fontWeight:300, lineHeight:1.85, color:theme.textDim, fontStyle:"italic", opacity:aboutVisible?1:0, transform:aboutVisible?"translateY(0)":"translateY(16px)", transition:"opacity 0.8s 0.5s, transform 0.8s 0.5s" }}>
+              From writing C programs to engineering full-stack secure applications — I build with precision, think like an attacker, and defend like an engineer.
+            </p>
+            <div style={{ marginTop:"28px", display:"inline-flex", alignItems:"center", gap:"10px", border:`1px solid ${theme.border}`, padding:"10px 18px", opacity:aboutVisible?1:0, transition:"opacity 0.8s 0.7s" }}>
+              <div style={{ width:"6px", height:"6px", borderRadius:"50%", background:theme.gold, boxShadow:`0 0 10px ${theme.gold}`, animation:"pulse 2s infinite" }} />
+              <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize:"10px", letterSpacing:"0.2em", color:theme.gold }}>OPEN TO OPPORTUNITIES</span>
+            </div>
+          </div>
+
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1px", background:theme.border, border:`1px solid ${theme.border}`, opacity:aboutVisible?1:0, transform:aboutVisible?"translateY(0)":"translateY(20px)", transition:"opacity 0.8s 0.4s, transform 0.8s 0.4s" }}>
+            {STATS.map((s,i) => (
+              <div key={i} className="hoverable" style={{ background:theme.bg, padding:"42px 32px", transition:"background 0.4s", animation:"neonPulse 4s ease-in-out infinite", animationDelay:`${i*0.8}s` }}
+                onMouseEnter={e=>e.currentTarget.style.background=theme.bg2}
+                onMouseLeave={e=>e.currentTarget.style.background=theme.bg}
+              >
+                <div className="grad-text-block" style={{ fontFamily:"'Playfair Display', serif", fontSize:"52px", fontWeight:900, lineHeight:1, marginBottom:"10px" }}>{s.value}</div>
+                <div style={{ fontFamily:"'Cinzel', serif", fontSize:"9px", letterSpacing:"0.3em", color:theme.textDim, textTransform:"uppercase" }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      </SectionReveal>
+
+      {/* ── SKILLS — RADAR + BARS ── */}
+      <SectionReveal id="skills" direction="left" delay={0} style={secStyle}>
+      <section style={{ padding:0 }}>
+        <SectionLabel theme={theme}>Arsenal</SectionLabel>
+        <SectionTitle visible={true} theme={theme}>What I Bring.</SectionTitle>
+
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"80px", alignItems:"center" }}>
+          {/* Radar chart */}
+          <div ref={skillsRef} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"24px" }}>
+            <HexRadarChart theme={theme} animate={skillsVisible} />
+            <div style={{ fontFamily:"'Cinzel', serif", fontSize:"9px", letterSpacing:"0.35em", color:theme.textMuted, textTransform:"uppercase" }}>
+              SKILL DIMENSION ANALYSIS
+            </div>
+          </div>
+
+          {/* Skill bars */}
+          <div style={{ display:"flex", flexDirection:"column", gap:"28px" }}>
+            {SKILLS.map((sk, i) => (
+              <div key={sk.name} style={{ opacity:skillsVisible?1:0, transform:skillsVisible?"translateY(0)":"translateY(14px)", transition:`opacity 0.7s ${0.1+i*0.07}s, transform 0.7s ${0.1+i*0.07}s` }}>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"8px" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
+                    <span style={{ fontFamily:"'Cinzel', serif", fontSize:"10px", letterSpacing:"0.15em", color:theme.text }}>{sk.name}</span>
+                    <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize:"8px", letterSpacing:"0.2em", color:theme.borderMid, border:`1px solid ${theme.border}`, padding:"1px 5px" }}>{sk.category}</span>
+                  </div>
+                  <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize:"10px", color:theme.gold }}>{sk.level}%</span>
+                </div>
+                <div style={{ height:"1px", background:theme.border, position:"relative" }}>
+                  <div style={{ height:"1px", background:`linear-gradient(90deg,${theme.borderMid},${theme.gold},${theme.goldLight})`, width:skillsVisible?`${sk.level}%`:"0%", transition:`width 1.4s cubic-bezier(0.25,0.46,0.45,0.94) ${0.3+i*0.07}s`, position:"relative" }}>
+                    <div style={{ position:"absolute", right:0, top:"50%", transform:"translateY(-50%)", width:"5px", height:"5px", borderRadius:"50%", background:theme.goldLight, boxShadow:`0 0 10px ${theme.gold}` }} />
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Tech badges */}
+            <div style={{ display:"flex", flexWrap:"wrap", gap:"8px", marginTop:"8px" }}>
+              {["C","C++","Python","Java","JS","Kali","Nmap","Wireshark","Metasploit","Git"].map(t => (
+                <span key={t} className="hoverable" style={{ fontFamily:"'JetBrains Mono', monospace", fontSize:"9px", letterSpacing:"0.15em", padding:"5px 12px", border:`1px solid ${theme.border}`, color:theme.textDim, textTransform:"uppercase", transition:"all 0.3s", cursor:"default" }}
+                  onMouseEnter={e=>{e.currentTarget.style.borderColor=theme.gold;e.currentTarget.style.color=theme.gold}}
+                  onMouseLeave={e=>{e.currentTarget.style.borderColor=theme.border;e.currentTarget.style.color=theme.textDim}}
+                >{t}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+      </SectionReveal>
+
+      {/* ── PROJECTS ── */}
+      <SectionReveal id="projects" direction="right" delay={0} style={secStyle}>
+      <section style={{ padding:0 }}>
+        <SectionLabel theme={theme}>Operations</SectionLabel>
+        <SectionTitle visible={true} theme={theme}>Projects &amp; Builds.</SectionTitle>
+
+        <div ref={projRef} style={{ display:"flex", flexDirection:"column", gap:"1px", background:theme.border, border:`1px solid ${theme.border}` }}>
+          {PROJECTS.map((p,i) => (
+            <div key={p.id} className="hoverable" style={{
+              background:theme.bg, padding:"50px 56px",
+              display:"grid", gridTemplateColumns:"78px 1fr auto",
+              gap:"40px", alignItems:"center",
+              position:"relative", overflow:"hidden",
+              transition:"background 0.4s, padding-left 0.4s",
+              opacity:projVisible?1:0, transform:projVisible?"translateX(0)":"translateX(-16px)",
+              transitionDelay:`${i*0.14}s`,
+            }}
+            onMouseEnter={e=>{e.currentTarget.style.background=theme.bg2;e.currentTarget.style.paddingLeft="72px"}}
+            onMouseLeave={e=>{e.currentTarget.style.background=theme.bg;e.currentTarget.style.paddingLeft="56px"}}
+            >
+              <div style={{ position:"absolute", left:0, top:0, bottom:0, width:"3px", background:`linear-gradient(to bottom,transparent,${theme.gold},transparent)`, opacity:0.6 }} />
+              <div style={{ fontFamily:"'Playfair Display', serif", fontSize:"46px", fontWeight:900, fontStyle:"italic", color:theme.border, lineHeight:1 }}>{p.id}</div>
+              <div>
+                <div style={{ display:"flex", alignItems:"center", gap:"12px", marginBottom:"6px", flexWrap:"wrap" }}>
+                  <span style={{ fontFamily:"'Playfair Display', serif", fontSize:"22px", fontWeight:700, color:theme.text, transition:"color 0.3s" }}>{p.title}</span>
+                  <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize:"8px", letterSpacing:"0.2em", padding:"3px 8px", border:`1px solid ${theme.borderMid}`, color:theme.gold, textTransform:"uppercase" }}>{p.status}</span>
+                  <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize:"8px", letterSpacing:"0.2em", padding:"3px 8px", border:"1px solid #3a1a1a", color:"#c94c4c", textTransform:"uppercase" }}>{p.threat}</span>
+                </div>
+                <div style={{ fontFamily:"'Cinzel', serif", fontSize:"9px", letterSpacing:"0.2em", color:theme.borderMid, textTransform:"uppercase", marginBottom:"12px" }}>{p.subtitle}</div>
+                <p style={{ fontFamily:"'EB Garamond', serif", fontStyle:"italic", fontSize:"17px", color:theme.textDim, lineHeight:1.65, marginBottom:"16px" }}>{p.desc}</p>
+                <div style={{ display:"flex", gap:"8px", flexWrap:"wrap" }}>
+                  {p.tags.map(t => (
+                    <span key={t} style={{ fontFamily:"'JetBrains Mono', monospace", fontSize:"9px", letterSpacing:"0.12em", padding:"4px 10px", border:`1px solid ${theme.border}`, color:theme.textDim, textTransform:"uppercase" }}>{t}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="hoverable" style={{ width:"48px", height:"48px", border:`1px solid ${theme.border}`, display:"flex", alignItems:"center", justifyContent:"center", color:theme.textDim, transition:"all 0.35s", flexShrink:0 }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor=theme.gold;e.currentTarget.style.color=theme.gold}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor=theme.border;e.currentTarget.style.color=theme.textDim}}
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H6M13 3V10" stroke="currentColor" strokeWidth="1.2"/></svg>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+      </SectionReveal>
+
+      {/* ── EXPERIENCE ── */}
+      <SectionReveal id="experience" direction="up" delay={0} style={secStyle}>
+      <section style={{ padding:0 }}>
+        <SectionLabel theme={theme}>Deployment Log</SectionLabel>
+        <SectionTitle visible={true} theme={theme}>Experience.</SectionTitle>
+        <div style={{ border:`1px solid ${theme.border}`, padding:"48px 52px", background:theme.bg2, position:"relative", overflow:"hidden" }}>
+          <HexBg theme={theme} />
+          <div style={{ position:"relative", zIndex:1 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:"16px", marginBottom:"20px" }}>
+              <div style={{ width:"6px", height:"6px", borderRadius:"50%", background:theme.borderMid, animation:"pulse 2s infinite" }} />
+              <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize:"11px", letterSpacing:"0.25em", color:theme.borderMid, textTransform:"uppercase" }}>EXPERIENCE MODULE :: LOADING</span>
+              <span style={{ animation:"blink 1s step-end infinite", color:theme.borderMid, fontFamily:"'JetBrains Mono'" }}>_</span>
+            </div>
+            <p style={{ fontFamily:"'EB Garamond', serif", fontStyle:"italic", fontSize:"18px", color:theme.textMuted, lineHeight:1.8 }}>
+              Field deployments and professional engagements — coming soon. Currently accumulating experience through CTF challenges, academic projects, and independent security research.
+            </p>
+          </div>
+        </div>
+      </section>
+      </SectionReveal>
+
+      {/* ── TERMINAL ── */}
+      <SectionReveal direction="left" delay={0} style={secStyle}>
+      <section style={{ padding:0 }}>
+        <SectionLabel theme={theme}>Interactive Shell</SectionLabel>
+        <SectionTitle visible={true} theme={theme}>Try the Terminal.</SectionTitle>
+        <div style={{ maxWidth:"720px" }}>
+          <FakeTerminal theme={theme} />
+        </div>
+      </section>
+      </SectionReveal>
+
+      {/* ── CONTACT ── */}
+      <SectionReveal id="contact" direction="up" delay={0} style={secStyle}>
+      <section style={{ padding:0 }}>
+        <SectionLabel theme={theme}>Secure Channel</SectionLabel>
+        <div style={{ textAlign:"center", marginBottom:"60px" }}>
+          <h2 className="grad-text-block" style={{
+            fontFamily:"'Playfair Display', serif",
+            fontSize:"clamp(46px, 7vw, 96px)",
+            fontWeight:900, lineHeight:1.05, marginBottom:"18px",
+          }}>
+            Open a<br />Transmission.
+          </h2>
+          <p style={{ fontFamily:"'Cinzel', serif", fontSize:"10px", letterSpacing:"0.4em", color:theme.textDim, textTransform:"uppercase" }}>
+            Encrypted · No spam · Response guaranteed
+          </p>
+        </div>
+
+        <div style={{ maxWidth:"760px", margin:"0 auto" }}>
+          <ContactForm theme={theme} />
+        </div>
+
+        <div style={{ display:"flex", justifyContent:"center", gap:"48px", marginTop:"56px", flexWrap:"wrap" }}>
+          {["GitHub","LinkedIn","TryHackMe","Email"].map(l => (
+            <a key={l} href={l==="Email"?"mailto:shanthan@email.com":"#"} className="hoverable" style={{ fontFamily:"'Cinzel', serif", fontSize:"9px", letterSpacing:"0.28em", color:theme.textDim, textDecoration:"none", textTransform:"uppercase", paddingBottom:"5px", borderBottom:"1px solid transparent", transition:"color 0.35s, border-color 0.35s" }}
+              onMouseEnter={e=>{e.currentTarget.style.color=theme.goldLight;e.currentTarget.style.borderColor=theme.gold}}
+              onMouseLeave={e=>{e.currentTarget.style.color=theme.textDim;e.currentTarget.style.borderColor="transparent"}}
+            >{l}</a>
+          ))}
+        </div>
+      </section>
+      </SectionReveal>
+
+      {/* ── FOOTER ── */}
+      <footer style={{ padding:"36px 64px", borderTop:`1px solid ${theme.border}`, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:"12px", background:theme.bg, marginBottom:"56px" }}>
+        <span style={{ fontFamily:"'Cinzel', serif", fontSize:"9px", letterSpacing:"0.2em", color:theme.textMuted, textTransform:"uppercase" }}>© MMXXV Shanthan — All rights reserved</span>
+        <span style={{ fontFamily:"'JetBrains Mono', monospace", fontSize:"9px", letterSpacing:"0.2em", color:theme.textMuted }}>React · Supabase · Precision</span>
+      </footer>
+
+    </div>
+  );
+}
+
+
+    const domNode = document.getElementById('root');
+    const root = ReactDOM.createRoot(domNode);
+    root.render(React.createElement(App));
+  </script>
+</body>
+</html>
